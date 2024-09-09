@@ -1,0 +1,90 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:provider/provider.dart';
+
+// Provider to manage notification state
+class NotificationProvider with ChangeNotifier {
+  late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+
+  NotificationProvider() {
+    _initializeNotifications();
+  }
+
+  // Initialize the notification settings
+  void _initializeNotifications() async {
+    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('app_icon'); // Ensure you have 'app_icon.png' in res/drawable
+
+    final InitializationSettings initializationSettings =
+        InitializationSettings(android: initializationSettingsAndroid);
+
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
+
+  // Show a simple notification
+  Future<void> showNotification() async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+      'your_channel_id',
+      'your_channel_name',
+      channelDescription: 'your_channel_description', // Use named argument here
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      'Title of Notification',
+      'Body of Notification',
+      platformChannelSpecifics,
+    );
+  }
+}
+
+void main() {
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => NotificationProvider(),
+      child: MyApp(),
+    ),
+  );
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Local Notification Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: NotificationHomePage(),
+    );
+  }
+}
+
+class NotificationHomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final notificationProvider = Provider.of<NotificationProvider>(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Local Notification Demo'),
+      ),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () {
+            notificationProvider.showNotification();
+          },
+          child: Text('Show Notification'),
+        ),
+      ),
+    );
+  }
+}
